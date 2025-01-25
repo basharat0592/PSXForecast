@@ -52,23 +52,33 @@ selected_stock = st.selectbox(
     help="Start typing the stock name or ticker to filter the dropdown."
 )
 
-# Extract the ticker symbol
+# Extract the ticker symbol from the dropdown
 ticker_symbol = stocks_df.loc[
     stocks_df["name"] + " (" + stocks_df["ticker"] + ")" == selected_stock, "ticker"
 ].values[0]
-ticker = f"{ticker_symbol}.KA"  # Append .KA to the ticker for PSX
+
+# Text input for manual entry (fallback)
+manual_ticker = st.text_input(
+    "Or Enter a Ticker Manually (if not in the list):",
+    value="",
+    placeholder="e.g., PSO"
+).upper()
+
+# Decide which ticker to use
+final_ticker = manual_ticker if manual_ticker else ticker_symbol
+ticker = f"{final_ticker}.KA"  # Append .KA for PSX tickers
 
 if st.button("Generate Forecast"):
     try:
         # Fetch stock data
-        st.write(f"Fetching data for **{selected_stock}**...")
+        st.write(f"Fetching data for **{final_ticker}**...")
         df = fetch_stock_data(ticker)
         if df.empty:  # Check if data is empty
-            st.error("No data found for the selected stock. Please try another.")
+            st.error("No data found for the selected stock. Please check the ticker.")
         else:
             # Display the current price
             current_price = df.iloc[-1]  # Get the most recent closing price
-            st.markdown(f"###### Current Price of **{selected_stock}**: PKR **{current_price:.2f}**")
+            st.markdown(f"###### Current Price of **{final_ticker}**: PKR **{current_price:.2f}**")
 
             # Resample data and train model
             monthly_data = resample_monthly(df)
@@ -80,7 +90,7 @@ if st.button("Generate Forecast"):
             future_dates = pd.date_range(monthly_data.index[-1], periods=forecast_steps + 1, freq='M')[1:]
             forecast_df = pd.DataFrame({
                 "Date": future_dates.strftime('%d-%m-%Y'),
-                "Forecast Price": future_forecast
+                "Forecast": future_forecast
             })
             # Display Forecast
             st.write(f"Forecast for the next 6 months:")
@@ -113,7 +123,7 @@ if st.button("Generate Forecast"):
             ))
             # Update layout
             fig.update_layout(
-                title=f"Forecast for {selected_stock}",
+                title=f"Forecast for {final_ticker}",
                 xaxis_title="Date",
                 yaxis_title="Closing Price",
                 hovermode="x unified",
