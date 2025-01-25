@@ -44,7 +44,7 @@ if st.button("Generate Forecast"):
             future_forecast = forecast(model, forecast_steps)
             future_dates = pd.date_range(monthly_data.index[-1], periods=forecast_steps + 1, freq='M')[1:]
             forecast_df = pd.DataFrame({
-                "Date": future_dates,
+                "Date": future_dates.strftime('%d-%m-%Y'),
                 "Forecast": future_forecast
             })
             # Display Forecast
