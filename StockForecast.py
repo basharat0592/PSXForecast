@@ -37,7 +37,7 @@ if st.button("Generate Forecast"):
         else:
             # Resample data and train model
             monthly_data = resample_monthly(df)
-            st.write("Training the Forecast Model...")
+            st.write("Forecasting using AI Model...")
             model = fit_sarimax(monthly_data)
             # Generate Forecast
             forecast_steps = 6
