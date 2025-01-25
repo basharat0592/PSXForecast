@@ -3,6 +3,21 @@ import yfinance as yf
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import plotly.graph_objects as go
+
+# Predefined list of KSE-100 stocks
+kse100_stocks = [
+    {"name": "Habib Bank Limited", "ticker": "HBL"},
+    {"name": "Lucky Cement Limited", "ticker": "LUCK"},
+    {"name": "Engro Corporation Limited", "ticker": "ENGRO"},
+    {"name": "Pakistan Petroleum Limited", "ticker": "PPL"},
+    {"name": "Oil & Gas Development Company", "ticker": "OGDC"},
+    {"name": "Hub Power Company", "ticker": "HUBC"},
+    # Add the rest of the KSE-100 stock list here
+]
+
+# Create a DataFrame for easy lookup
+stocks_df = pd.DataFrame(kse100_stocks)
+
 # Function Definitions
 def fetch_stock_data(ticker, period="5y"):
     """Fetch stock data for the given ticker and period."""
@@ -11,33 +26,49 @@ def fetch_stock_data(ticker, period="5y"):
     df = df['Close']  # Extract closing prices
     df.index = pd.to_datetime(df.index)  # Ensure datetime index
     return df
+
 def resample_monthly(data):
     """Resample daily data to monthly closing prices."""
     return data.resample('M').last()
+
 def fit_sarimax(data):
     """Fit a SARIMAX model on the data."""
     model = SARIMAX(data, order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
     return model.fit(disp=False)
+
 def forecast(model, steps):
     """Generate forecasts using the SARIMAX model."""
     return model.forecast(steps=steps)
+
 # Streamlit App
 st.title("PSX Stock Forecasting System")
 st.write("Forecast the next 1 to 6 months of stock prices for PSX tickers.")
-# User Input
-user_input = st.text_input("Enter PSX Ticker Symbol (e.g., HUBC):", value="HUBC").upper()
-ticker = f"{user_input}.KA"  # Append .KA to the input
+
+# Searchable dropdown for KSE-100 stocks
+selected_stock = st.selectbox(
+    "Search and Select a KSE-100 Stock:",
+    options=stocks_df["name"] + " (" + stocks_df["ticker"] + ")",
+    index=0,
+    help="Start typing the stock name or ticker to filter the dropdown."
+)
+
+# Extract the ticker symbol
+ticker_symbol = stocks_df.loc[
+    stocks_df["name"] + " (" + stocks_df["ticker"] + ")" == selected_stock, "ticker"
+].values[0]
+ticker = f"{ticker_symbol}.KA"  # Append .KA to the ticker for PSX
+
 if st.button("Generate Forecast"):
     try:
         # Fetch stock data
-        st.write(f"Fetching data for **{user_input}**...")
+        st.write(f"Fetching data for **{selected_stock}**...")
         df = fetch_stock_data(ticker)
         if df.empty:  # Check if data is empty
-            st.error("Wrong Ticker! Please enter a valid PSX ticker.")
+            st.error("No data found for the selected stock. Please try another.")
         else:
             # Display the current price
             current_price = df.iloc[-1]  # Get the most recent closing price
-            st.markdown(f"###### Current Price of **{user_input}**: PKR **{current_price:.2f}**")
+            st.markdown(f"###### Current Price of **{selected_stock}**: PKR **{current_price:.2f}**")
 
             # Resample data and train model
             monthly_data = resample_monthly(df)
@@ -82,7 +113,7 @@ if st.button("Generate Forecast"):
             ))
             # Update layout
             fig.update_layout(
-                title=f"Forecast for {user_input}",
+                title=f"Forecast for {selected_stock}",
                 xaxis_title="Date",
                 yaxis_title="Closing Price",
                 hovermode="x unified",
@@ -90,8 +121,8 @@ if st.button("Generate Forecast"):
                 template="plotly_white"
             )
             st.plotly_chart(fig)
-    except Exception:
-        st.error("Wrong Ticker! Please enter a valid PSX ticker.")
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
 # Developer Information
 st.markdown("---")
 st.markdown(
