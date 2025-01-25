@@ -4,7 +4,7 @@ import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import plotly.graph_objects as go
 # Function Definitions
-def fetch_stock_data(ticker, period="10y"):
+def fetch_stock_data(ticker, period="5y"):
     """Fetch stock data for the given ticker and period."""
     stock = yf.Ticker(ticker)
     df = stock.history(period=period)
@@ -35,6 +35,10 @@ if st.button("Generate Forecast"):
         if df.empty:  # Check if data is empty
             st.error("Wrong Ticker! Please enter a valid PSX ticker.")
         else:
+            # Display the current price
+            current_price = df.iloc[-1]  # Get the most recent closing price
+            st.markdown(f"###### Current Price of **{user_input}**: PKR **{current_price:.2f}**")
+
             # Resample data and train model
             monthly_data = resample_monthly(df)
             st.write("Forecasting using AI Model...")
@@ -45,7 +49,7 @@ if st.button("Generate Forecast"):
             future_dates = pd.date_range(monthly_data.index[-1], periods=forecast_steps + 1, freq='M')[1:]
             forecast_df = pd.DataFrame({
                 "Date": future_dates.strftime('%d-%m-%Y'),
-                "Forecast": future_forecast
+                "Forecast Price": future_forecast
             })
             # Display Forecast
             st.write(f"Forecast for the next 6 months:")
@@ -59,12 +63,17 @@ if st.button("Generate Forecast"):
             # Visualization
             st.subheader("Visualization")
             fig = go.Figure()
+
+            # Filter the monthly data to the most recent months
+            monthly_data = monthly_data[-36:]  # Keep only the last few months
+
             # Add historical data
             fig.add_trace(go.Scatter(
                 x=monthly_data.index, y=monthly_data,
                 mode='lines', name='Historical Data',
                 line=dict(color='blue')
             ))
+
             # Add future forecast
             fig.add_trace(go.Scatter(
                 x=future_dates, y=future_forecast,
