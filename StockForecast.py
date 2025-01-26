@@ -8,13 +8,13 @@ import plotly.graph_objects as go
 import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 
-# Initialize Firebase
+# Initialize Firebase using Streamlit secrets
 if "firebase_initialized" not in st.session_state:
     try:
         if not firebase_admin._apps:  # Check if Firebase is already initialized
-            #cred = credentials.Certificate("psxforecast.json")  # Path to your Firebase key
-            creds = st.secrets["firebase_creds"]
-            #initialize_app(cred)
+            firebase_creds = st.secrets["firebase_creds"]  # Fetch credentials from secrets
+            cred = credentials.Certificate(firebase_creds)
+            initialize_app(cred)
         st.session_state["firebase_initialized"] = True
     except ValueError:
         # Firebase is already initialized
