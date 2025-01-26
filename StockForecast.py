@@ -268,7 +268,7 @@ if st.session_state["authenticated"]:
     st.write("4. **Ufone**: Excellent growth potential in the telecom sector.")
 
 else:
-    st.markdown("*Please login/register to proceed with forecasting, portfolio management and stock recommendations...*")
+    st.markdown("*Please login/register from left sidebar to proceed with forecasting, portfolio management and stock recommendations...*")
     # Login & Register Section
     auth_option = st.sidebar.selectbox("Choose an option:", ["Login", "Register"])
     email = st.sidebar.text_input("Email")
