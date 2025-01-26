@@ -4,3 +4,4 @@ pandas
 statsmodels
 plotly
 firebase-admin
+streamlit-cookies-manager
