@@ -213,6 +213,7 @@ if st.session_state["authenticated"]:
             else:
                 current_price = df.iloc[-1]
                 st.write(f"Current Price of **{user_input}**: PKR {current_price:.2f}")
+                st.write(f"Generating Forecast for **{user_input}** Please wait...")
                 monthly_data = resample_monthly(df)
                 model = fit_sarimax(monthly_data)
                 forecast_steps = 6
@@ -220,16 +221,41 @@ if st.session_state["authenticated"]:
                 future_dates = pd.date_range(monthly_data.index[-1], periods=forecast_steps + 1, freq="M")[1:]
                 forecast_df = pd.DataFrame({
                     "Date": future_dates.strftime("%d-%m-%Y"),
-                    "Forecast Price": future_forecast
+                    "Forecast": future_forecast
                 })
                 st.dataframe(forecast_df)
 
-                # Plot Forecast
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=monthly_data.index, y=monthly_data, mode="lines", name="Historical Data"))
-                fig.add_trace(go.Scatter(x=future_dates, y=future_forecast, mode="lines+markers", name="Forecast"))
-                fig.update_layout(title=f"Forecast for {user_input}", xaxis_title="Date", yaxis_title="Price (PKR)")
-                st.plotly_chart(fig)
+            # Recommendations
+            st.subheader("Recommendations")
+            if future_forecast[-1] > monthly_data.iloc[-1]:
+                st.write("✅ **Recommendation:** The forecast suggests a potential upward trend. Consider holding or buying.")
+            else:
+                st.write("⚠️ **Recommendation:** The forecast suggests a potential downward trend. Consider selling or monitoring closely.")
+            # Visualization
+            st.subheader("Visualization")
+            fig = go.Figure()
+            # Add historical data
+            fig.add_trace(go.Scatter(
+                x=monthly_data.index, y=monthly_data,
+                mode='lines', name='Historical Data',
+                line=dict(color='blue')
+            ))
+            # Add future forecast
+            fig.add_trace(go.Scatter(
+                x=future_dates, y=future_forecast,
+                mode='lines+markers', name='Future Forecast',
+                line=dict(color='red', dash='dash')
+            ))
+            # Update layout
+            fig.update_layout(
+                title=f"Forecast for {user_input}",
+                xaxis_title="Date",
+                yaxis_title="Closing Price",
+                hovermode="x unified",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                template="plotly_white"
+            )
+            st.plotly_chart(fig)
         except Exception as e:
             st.error(f"Error: {e}")
 
