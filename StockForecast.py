@@ -5,7 +5,6 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 import hashlib
 import datetime
 import plotly.graph_objects as go
-import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
@@ -14,16 +13,29 @@ import json
 if "firebase_initialized" not in st.session_state:
     try:
         if len(firebase_admin._apps) == 0:  # Check if Firebase is already initialized
-            # Load Firebase credentials from Streamlit secrets
+            # Fetch Firebase credentials from Streamlit secrets
             firebase_creds = st.secrets["firebase_creds"]
 
-            # Create a copy of the dictionary and fix the private_key format
-            firebase_creds_fixed = firebase_creds.copy()  # Copy the original dictionary
-            firebase_creds_fixed["private_key"] = firebase_creds["private_key"].replace(r'\n', '\n')  # Fix newline characters
+            # Manually fix the private_key by decoding properly
+            private_key = firebase_creds["private_key"].replace(r'\n', '\n')  # Correct line breaks
+            
+            # Rebuild the credential dictionary with the properly formatted private_key
+            firebase_creds_fixed = {
+                "type": firebase_creds["type"],
+                "project_id": firebase_creds["project_id"],
+                "private_key_id": firebase_creds["private_key_id"],
+                "private_key": private_key,
+                "client_email": firebase_creds["client_email"],
+                "client_id": firebase_creds["client_id"],
+                "auth_uri": firebase_creds["auth_uri"],
+                "token_uri": firebase_creds["token_uri"],
+                "auth_provider_x509_cert_url": firebase_creds["auth_provider_x509_cert_url"],
+                "client_x509_cert_url": firebase_creds["client_x509_cert_url"]
+            }
 
-            # Use the fixed dictionary to initialize Firebase
-            cred = credentials.Certificate(firebase_creds_fixed)  # Pass the fixed dictionary
-            firebase_admin.initialize_app(cred)  # Initialize Firebase app with credentials
+            # Initialize Firebase with the fixed credentials
+            cred = credentials.Certificate(firebase_creds_fixed)
+            firebase_admin.initialize_app(cred)
 
         st.session_state["firebase_initialized"] = True  # Mark Firebase as initialized
     except Exception as e:
