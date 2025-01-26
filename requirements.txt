@@ -1,7 +1,7 @@
-streamlit==1.16.0
-yfinance==0.1.74
-pandas==1.5.3
-statsmodels==0.13.2
-plotly==5.9.0
-firebase-admin==5.0.0
-hashlib==0.2
+streamlit
+yfinance
+pandas
+statsmodels
+plotly
+firebase-admin
+hashlib
