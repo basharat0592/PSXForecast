@@ -13,7 +13,7 @@ if "firebase_initialized" not in st.session_state:
     try:
         if len(firebase_admin._apps) == 0:  # Check if Firebase is already initialized
             firebase_creds = st.secrets["firebase_creds"]  # Fetch credentials from secrets
-            cred = credentials.Certificate(firebase_creds)  # Initialize credentials from secrets
+            cred = credentials.Certificate(firebase_creds)  # Pass the dictionary from secrets to initialize
             firebase_admin.initialize_app(cred)  # Initialize Firebase app with credentials
         st.session_state["firebase_initialized"] = True  # Mark Firebase as initialized
     except Exception as e:
