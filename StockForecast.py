@@ -7,7 +7,6 @@ import datetime
 import plotly.graph_objects as go
 import firebase_admin
 from firebase_admin import credentials, firestore
-import json
 
 # Initialize Firebase using Streamlit secrets
 if "firebase_initialized" not in st.session_state:
@@ -16,10 +15,10 @@ if "firebase_initialized" not in st.session_state:
             # Fetch Firebase credentials from Streamlit secrets
             firebase_creds = st.secrets["firebase_creds"]
 
-            # Manually fix the private_key by decoding properly
-            private_key = firebase_creds["private_key"].replace(r'\n', '\n')  # Correct line breaks
-            
-            # Rebuild the credential dictionary with the properly formatted private_key
+            # Correctly handle line breaks in private_key if necessary
+            private_key = firebase_creds["private_key"].replace(r'\n', '\n')  # Ensure line breaks are fixed
+
+            # Rebuild the credential dictionary with the fixed private_key
             firebase_creds_fixed = {
                 "type": firebase_creds["type"],
                 "project_id": firebase_creds["project_id"],
