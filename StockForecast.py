@@ -8,20 +8,23 @@ import plotly.graph_objects as go
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# Initialize Firebase with Streamlit secrets
+# Initialize Firebase using Streamlit secrets
 if "firebase_initialized" not in st.session_state:
     try:
-        if not firebase_admin._apps:  # Check if Firebase is already initialized
-            firebase_creds = st.secrets["firebase_creds"]
-            cred = credentials.Certificate(firebase_creds)
-            app = firebase_admin.initialize_app(cred)
-        st.session_state["firebase_initialized"] = True  # Store the flag in session state
-    except ValueError:
-        # Firebase is already initialized
-        st.session_state["firebase_initialized"] = True
+        if len(firebase_admin._apps) == 0:  # Check if Firebase is already initialized
+            firebase_creds = st.secrets["firebase_creds"]  # Fetch credentials from secrets
+            cred = credentials.Certificate(firebase_creds)  # Initialize credentials from secrets
+            firebase_admin.initialize_app(cred)  # Initialize Firebase app with credentials
+        st.session_state["firebase_initialized"] = True  # Mark Firebase as initialized
+    except Exception as e:
+        st.error(f"Error initializing Firebase: {e}")
+        st.session_state["firebase_initialized"] = False  # Mark as failed to initialize
 
 # Firestore client
-db = firestore.client()
+if "firebase_initialized" in st.session_state and st.session_state["firebase_initialized"]:
+    db = firestore.client()  # Connect to Firestore
+else:
+    st.error("Firebase is not initialized.")
 
 # Utility Functions
 def hash_password(password):
