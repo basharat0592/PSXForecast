@@ -295,6 +295,12 @@ else:
             else:
                 st.sidebar.error("Invalid credentials.")
                 
+# Developer Information
 st.markdown("---")
-st.markdown("**Developed by [Basharat Hussain](basharathussain.com)**")
+st.markdown(
+    """
+    **Developed by [Basharat Hussain](https://basharathussain.com/)**  
+    For more projects and details, visit the website.
+    """
+)
 
